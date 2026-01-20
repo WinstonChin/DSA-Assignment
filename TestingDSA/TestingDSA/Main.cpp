@@ -1,153 +1,282 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <fstream>
-#include <sstream>
-#include <vector>
-#include <string>
-#include <algorithm>
-
+#include <cstring>
 using namespace std;
 
 struct Game {
-    string name;
+    char name[100];
     int minPlayers;
     int maxPlayers;
     int minTime;
     int maxTime;
     int year;
-    bool isBorrowed = false;
+    bool isBorrowed;
+    Game* next;
+};
+
+struct BorrowedNode {
+    char name[100];
+    BorrowedNode* next;
 };
 
 struct Member {
-    string name;
-    vector<string> borrowed;
-    vector<string> returned;
+    char name[50];
+    BorrowedNode* borrowed;
+    BorrowedNode* returned;
 };
 
-vector<Game> games;
-Member currentMember = { "Guest" };
+Game* gameHead = nullptr;
+Member currentMember = { "Guest", nullptr, nullptr };
 
-void pause() {
-    cout << "\nPress ENTER to continue...";
-    cin.ignore();
-    cin.get();
+void pushGame(Game* g) {
+    g->next = gameHead;
+    gameHead = g;
 }
 
-void loadGames() {
-    games.clear();
-    ifstream file("GamesList.csv");
+Game* findGameByName(const char* name) {
+    Game* temp = gameHead;
+    while (temp != nullptr) {
+        if (strcmp(temp->name, name) == 0)
+            return temp;
+        temp = temp->next;
+    }
+    return nullptr;
+}
 
+void addBorrowed(Member& m, const char* name, bool isReturned) {
+    BorrowedNode* node = new BorrowedNode;
+    strcpy_s(node->name, sizeof(node->name), name);
+    node->next = nullptr;
+
+    BorrowedNode** head = (isReturned ? &m.returned : &m.borrowed);
+    node->next = *head;
+    *head = node;
+}
+
+bool removeBorrowed(Member& m, const char* name) {
+    BorrowedNode* temp = m.borrowed;
+    BorrowedNode* prev = nullptr;
+
+    while (temp != nullptr) {
+        if (strcmp(temp->name, name) == 0) {
+            if (prev == nullptr) {
+                m.borrowed = temp->next;
+            }
+            else {
+                prev->next = temp->next;
+            }
+            delete temp;
+            return true;
+        }
+        prev = temp;
+        temp = temp->next;
+    }
+    return false;
+}
+
+void printBorrowedList(BorrowedNode* head) {
+    BorrowedNode* temp = head;
+    while (temp != nullptr) {
+        cout << "- " << temp->name << endl;
+        temp = temp->next;
+    }
+}
+
+bool parseCSVLine(char* line, char fields[][100], int& fieldCount) {
+    fieldCount = 0;
+    bool inQuotes = false;
+    int idx = 0;
+    int f = 0;
+
+    for (int i = 0; line[i] != '\0'; i++) {
+        char c = line[i];
+
+        if (c == '"') {
+            inQuotes = !inQuotes;
+            continue;
+        }
+
+        if (c == ',' && !inQuotes) {
+            fields[f][idx] = '\0';
+            f++;
+            idx = 0;
+        }
+        else {
+            fields[f][idx++] = c;
+        }
+    }
+
+    fields[f][idx] = '\0';
+    fieldCount = f + 1;
+    return true;
+}
+
+// ----------------- MERGE SORT START -----------------
+
+Game* merge(Game* a, Game* b, bool ascending) {
+    if (a == nullptr) return b;
+    if (b == nullptr) return a;
+
+    Game* result = nullptr;
+
+    if (ascending ? (strcmp(a->name, b->name) < 0) : (strcmp(a->name, b->name) > 0)) {
+        result = a;
+        result->next = merge(a->next, b, ascending);
+    }
+    else {
+        result = b;
+        result->next = merge(a, b->next, ascending);
+    }
+    return result;
+}
+
+void splitList(Game* source, Game** front, Game** back) {
+    Game* fast;
+    Game* slow;
+    slow = source;
+    fast = source->next;
+
+    while (fast != nullptr) {
+        fast = fast->next;
+        if (fast != nullptr) {
+            slow = slow->next;
+            fast = fast->next;
+        }
+    }
+
+    *front = source;
+    *back = slow->next;
+    slow->next = nullptr;
+}
+
+void mergeSort(Game** headRef, bool ascending) {
+    Game* head = *headRef;
+    if (head == nullptr || head->next == nullptr)
+        return;
+
+    Game* a;
+    Game* b;
+
+    splitList(head, &a, &b);
+
+    mergeSort(&a, ascending);
+    mergeSort(&b, ascending);
+
+    *headRef = merge(a, b, ascending);
+}
+
+// ----------------- MERGE SORT END -----------------
+
+void loadGames() {
+    gameHead = nullptr;
+
+    ifstream file("GamesList.csv");
     if (!file.is_open()) {
         cout << "ERROR: GamesList.csv not found!\n";
-        cout << "Put it in the same folder as the .exe\n";
-        pause();
         return;
     }
 
-    string line;
-    getline(file, line);
-    while (getline(file, line)) {
-        if (line.empty()) continue;
+    char line[200];
+    file.getline(line, 200);
 
-        stringstream ss(line);
-        Game g;
-        string temp;
+    while (file.getline(line, 200)) {
+        if (strlen(line) == 0) continue;
 
-        getline(ss, g.name, ',');
+        char fields[10][100];
+        int fieldCount;
+        parseCSVLine(line, fields, fieldCount);
 
-        if (!getline(ss, temp, ',')) continue;
-        g.minPlayers = atoi(temp.c_str());
+        Game* g = new Game;
+        g->isBorrowed = false;
+        g->next = nullptr;
 
-        if (!getline(ss, temp, ',')) continue;
-        g.maxPlayers = atoi(temp.c_str());
+        strcpy_s(g->name, sizeof(g->name), fields[0]);
+        g->minPlayers = atoi(fields[1]);
+        g->maxPlayers = atoi(fields[2]);
+        g->minTime = atoi(fields[3]);
+        g->maxTime = atoi(fields[4]);
+        g->year = atoi(fields[5]);
 
-        if (!getline(ss, temp, ',')) continue;
-        g.minTime = atoi(temp.c_str());
-
-        if (!getline(ss, temp, ',')) continue;
-        g.maxTime = atoi(temp.c_str());
-
-        if (!getline(ss, temp, ',')) continue;
-        g.year = atoi(temp.c_str());
-
-        games.push_back(g);
+        pushGame(g);
     }
 
     file.close();
-
 }
 
-void showGames(bool onlyAvailable) {
-    cout << "\n===== Games =====\n";
-    for (int i = 0; i < games.size(); i++) {
-        if (onlyAvailable && games[i].isBorrowed) continue;
+void showGamesSorted(bool onlyAvailable, bool ascending) {
+    mergeSort(&gameHead, ascending);
 
-        cout << i + 1 << ". " << games[i].name;
-        if (games[i].isBorrowed) cout << " [BORROWED]";
-        cout << endl;
+    cout << "\n===== Games =====\n";
+    Game* temp = gameHead;
+    int i = 1;
+
+    while (temp != nullptr) {
+        if (!onlyAvailable || !temp->isBorrowed) {
+            cout << i << ". " << temp->name;
+            if (temp->isBorrowed) cout << " [BORROWED]";
+            cout << endl;
+            i++;
+        }
+        temp = temp->next;
     }
 }
 
 void borrowGame() {
-    showGames(true);
+    showGamesSorted(true, true);
 
-    int choice;
-    cout << "\nSelect game (0 to cancel): ";
-    cin >> choice;
+    cout << "\nEnter game name to borrow (or 0 to cancel): ";
+    char name[100];
+    cin.ignore();
+    cin.getline(name, 100);
 
-    if (choice == 0) return;
-    if (choice < 1 || choice > games.size() || games[choice - 1].isBorrowed) {
-        cout << "Invalid choice.\n";
-        pause();
+    if (strcmp(name, "0") == 0) return;
+
+    Game* g = findGameByName(name);
+    if (g == nullptr || g->isBorrowed) {
+        cout << "Invalid game or already borrowed.\n";
         return;
     }
 
-    games[choice - 1].isBorrowed = true;
-    currentMember.borrowed.push_back(games[choice - 1].name);
+    g->isBorrowed = true;
+    addBorrowed(currentMember, g->name, false);
 
-    cout << "You borrowed " << games[choice - 1].name << endl;
-    pause();
+    cout << "You borrowed " << g->name << endl;
 }
 
 void returnGame() {
-    if (currentMember.borrowed.empty()) {
+    if (currentMember.borrowed == nullptr) {
         cout << "You have no borrowed games.\n";
-        pause();
         return;
     }
 
     cout << "\nYour borrowed games:\n";
-    for (int i = 0; i < currentMember.borrowed.size(); i++)
-        cout << i + 1 << ". " << currentMember.borrowed[i] << endl;
+    printBorrowedList(currentMember.borrowed);
 
-    int choice;
-    cout << "Select game to return: ";
-    cin >> choice;
+    cout << "\nEnter game name to return: ";
+    char name[100];
+    cin.ignore();
+    cin.getline(name, 100);
 
-    if (choice < 1 || choice > currentMember.borrowed.size()) {
-        cout << "Invalid choice.\n";
-        pause();
+    if (!removeBorrowed(currentMember, name)) {
+        cout << "Game not found in borrowed list.\n";
         return;
     }
 
-    string name = currentMember.borrowed[choice - 1];
-    currentMember.returned.push_back(name);
-    currentMember.borrowed.erase(currentMember.borrowed.begin() + choice - 1);
+    Game* g = findGameByName(name);
+    if (g != nullptr) g->isBorrowed = false;
 
-    for (auto& g : games)
-        if (g.name == name) g.isBorrowed = false;
+    addBorrowed(currentMember, name, true);
 
     cout << "Returned " << name << endl;
-    pause();
 }
 
 void memberHistory() {
     cout << "\nBorrowed:\n";
-    for (auto& g : currentMember.borrowed) cout << "- " << g << endl;
+    printBorrowedList(currentMember.borrowed);
 
     cout << "\nReturned:\n";
-    for (auto& g : currentMember.returned) cout << "- " << g << endl;
-
-    pause();
+    printBorrowedList(currentMember.returned);
 }
 
 void memberMenu() {
@@ -175,62 +304,72 @@ void adminMenu() {
         cout << "\n---- Administrator Menu ----\n";
         cout << "1. Add Board Game\n";
         cout << "2. Remove Board Game\n";
-        cout << "3. Add Member\n";
-        cout << "4. Display Summary\n";
+        cout << "3. Display Summary\n";
         cout << "0. Logout\n";
-        cout << "Enter choice: ";
+        cout << "Choice: ";
         cin >> choice;
         cin.ignore();
 
-        switch (choice) {
-        case 1:
-            cout << "Adding board game...\n";
-            pause();
-            break;
+        if (choice == 1) {
+            Game* g = new Game;
+            g->next = nullptr;
+            g->isBorrowed = false;
 
-        case 2: {
-            cout << "\n===== Games =====\n";
-            for (int i = 0; i < games.size(); i++) {
-                cout << i + 1 << ". " << games[i].name;
-                if (games[i].isBorrowed) cout << " [BORROWED]";
-                cout << endl;
-            }
-            int removeChoice;
-            cout << "\nSelect game to remove (0 to cancel): ";
-            cin >> removeChoice;
-            cin.ignore();
+            cout << "Enter game name: ";
+            cin.getline(g->name, 100);
+            cout << "Min players: ";
+            cin >> g->minPlayers;
+            cout << "Max players: ";
+            cin >> g->maxPlayers;
+            cout << "Min time: ";
+            cin >> g->minTime;
+            cout << "Max time: ";
+            cin >> g->maxTime;
+            cout << "Year: ";
+            cin >> g->year;
 
-            if (removeChoice == 0) {
-                cout << "Canceling removal...\n";
+            pushGame(g);
+            cout << "Game added.\n";
+        }
+        else if (choice == 2) {
+            cout << "\nEnter game name to remove: ";
+            char name[100];
+            cin.getline(name, 100);
+
+            Game* temp = gameHead;
+            Game* prev = nullptr;
+
+            while (temp != nullptr && strcmp(temp->name, name) != 0) {
+                prev = temp;
+                temp = temp->next;
             }
-            else if (removeChoice < 1 || removeChoice > games.size()) {
-                cout << "Invalid choice.\n";
+
+            if (temp == nullptr) {
+                cout << "Game not found.\n";
             }
             else {
-                cout << "Selected to remove: " << games[removeChoice - 1].name << endl;
-
+                if (prev == nullptr) {
+                    gameHead = temp->next;
+                }
+                else {
+                    prev->next = temp->next;
+                }
+                delete temp;
+                cout << "Game removed.\n";
             }
-            pause();
-            break;
         }
-
-        case 3:
-            cout << "Adding member...\n";
-            pause();
-            break;
-
-        case 4:
-            cout << "Displaying summary...\n";
-            pause();
-            break;
-
-        case 0:
-            cout << "Logging out...\n";
-            break;
-
-        default:
-            cout << "Invalid choice.\n";
-            pause();
+        else if (choice == 3) {
+            cout << "\n=== Summary ===\n";
+            int total = 0, borrowed = 0;
+            Game* temp = gameHead;
+            while (temp != nullptr) {
+                total++;
+                if (temp->isBorrowed) borrowed++;
+                temp = temp->next;
+            }
+            cout << "Total games: " << total << endl;
+            cout << "Borrowed games: " << borrowed << endl;
+            cout << "Available games: " << (total - borrowed) << endl;
         }
     } while (choice != 0);
 }
