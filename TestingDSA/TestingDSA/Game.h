@@ -25,8 +25,11 @@ private:
 	Game* next;
 
 public:
+	// constructor
 	Game();
 	Game(string name, int minPlayers, int maxPlayers, int minTime, int maxTime, int year, bool isBorrowed, int returnDate);
+	
+	//  get and set
 	void setName(string name);
 	string getName();
 	void setMinPlayers(int minPlayers);
@@ -46,7 +49,11 @@ public:
 	void setReturnDate(int returnDate);
 	int getReturnDate();
 
+	// calculates the number of days a game is borrowed from today's date
+	// returns -1(if not borrowed) or the number of days between today's date and borrowDate
 	int borrowedDays();
+
+	// calculates the number of days a game is returned from today's date
+	// returns -1(if not returned) or the number of days between today's date and returnDate 
 	int returnedDays();
 };
-

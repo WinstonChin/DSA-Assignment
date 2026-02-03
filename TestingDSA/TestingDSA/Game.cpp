@@ -1,5 +1,6 @@
 #include "Game.h"
 
+//constructor 
 Game::Game() {}
 Game::Game(string n, int minPlay, int maxPlay, int minT, int maxT, int y, bool borrowed, int returnD) {
 	name = n;
@@ -15,6 +16,7 @@ Game::Game(string n, int minPlay, int maxPlay, int minT, int maxT, int y, bool b
 	next = NULL;
 }
 
+// get and set
 void Game::setName(string n) { name = n; }
 string Game::getName() { return name; }
 void Game::setMinPlayers(int minPlay) { minPlayers = minPlay; }
@@ -48,16 +50,23 @@ int getTodayYYYYMMDD() {
 
 // Convert YYYYMMDD to days since a reference date (e.g., 2000-01-01)
 int convertYYYYMMDDToDays(int yyyymmdd) {
-	if (yyyymmdd == -1) return -1;
-	
-	int year = yyyymmdd / 10000;
-	int month = (yyyymmdd / 100) % 100;
-	int day = yyyymmdd % 100;
-	
-	// rough approximation: each year = 365 days, each month = 30 days
-	return year * 365 + month * 30 + day;
+	if (yyyymmdd == -1) return -1; 
+	int year = yyyymmdd / 10000; 
+	int month = (yyyymmdd / 100) % 100; 
+	int day = yyyymmdd % 100; 
+
+	std::tm tmDate = {}; 
+	tmDate.tm_year = year - 1900; // years since 1900 
+	tmDate.tm_mon = month - 1; // months since January 
+	tmDate.tm_mday = day; 
+
+	std::time_t timeSinceEpoch = std::mktime(&tmDate); 
+	auto tp = std::chrono::system_clock::from_time_t(timeSinceEpoch); 
+	auto hoursSinceEpoch = std::chrono::duration_cast<std::chrono::hours>( tp.time_since_epoch() ).count(); 
+	return static_cast<int>(hoursSinceEpoch / 24); 
 }
 
+// calculates the number of days a game is borrowed from today's date
 int Game::borrowedDays() {
 	if (borrowDate == -1) return -1;
 	int todayDays = convertYYYYMMDDToDays(getTodayYYYYMMDD());
@@ -65,6 +74,7 @@ int Game::borrowedDays() {
 	return todayDays - borrowDays;
 }
 
+// calculates the number of days a game is returned from today's date
 int Game::returnedDays() {
 	if (returnDate == -1) return -1;
 	int todayDays = convertYYYYMMDDToDays(getTodayYYYYMMDD());

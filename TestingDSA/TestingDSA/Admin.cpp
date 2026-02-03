@@ -1,9 +1,11 @@
 #include "Admin.h"
 #include <fstream>
 
-Game games[2500];
+const int max_size = 2500;
+Game games[max_size];
 Member members[1000];
 
+//constructor
 Admin::Admin() {}
 
 //forward declaration for merge function
@@ -132,7 +134,7 @@ void mergesort(Game games[], int first, int last) {
 }
 
 void merge(Game games[], int first, int mid, int last) {
-	Game tempArray[2500];   // temporary array
+	Game tempArray[max_size];   // temporary array
 
 	// initialize the local indexes to indicate the subarrays
 	int first1 = first;     // beginning of first subarray
@@ -168,14 +170,18 @@ void merge(Game games[], int first, int mid, int last) {
 }
 
 
+//----------------Admin class functions------------------//
+//add Game to the games list
 void Admin::addGame(Game game) {
 	//load games into an array
 	int size = 0;
 	loadGames(games, size);
 
 	//add game to the back of the array
-	games[size] = game;
-	size++;
+	if (size < max_size) {
+		games[size] = game;
+		size++;
+	}
 
 	//sort the array
 	if (size > 1) {
@@ -188,14 +194,14 @@ void Admin::addGame(Game game) {
 	cout << "Game added." << endl;
 }
 
-
+// remove a Game from games list
 void Admin::removeGame(string name) {
 	//load games into an array
 	int size = 0;
 	loadGames(games, size);
 
 	int gameExist = 0;
-	//find and remove the game from the array
+	//find and remove the game from the array (including duplicates)
 	for (int i = 0; i < size; i++) {
 		if (games[i].getName() == name) {
 			gameExist = 1;
@@ -222,7 +228,7 @@ void Admin::removeGame(string name) {
 	cout << "Game removed.\n";
 }
 
-
+// add a Member to members list
 void Admin::addMember(string username) {
 	int size = 0;
 	loadMembers(members, size);
@@ -247,6 +253,7 @@ void Admin::addMember(string username) {
 	}
 }
 
+// display summary of borrowed and returned games
 void Admin::displayBorrowedReturned() {
 	int size = 0;
 	loadGames(games, size);
@@ -274,7 +281,7 @@ void Admin::displayBorrowedReturned() {
 			}
 		}
 	}
-	if(returnedCount == 0) {
+	if (returnedCount == 0) {
 		cout << "No games have been returned in the past 7 days.\n";
 	}
 }
