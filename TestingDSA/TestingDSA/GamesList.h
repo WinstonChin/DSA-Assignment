@@ -7,6 +7,11 @@ using namespace std;
 
 typedef Game ItemType;
 
+// About the GamesList class:
+// The GamesList class is a list that stores Games,
+// and will be responsible for all Games List related things, such as sorting
+// etc.
+
 class GamesList {
 private:
   struct Node {
