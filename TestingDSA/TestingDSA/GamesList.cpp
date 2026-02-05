@@ -1,5 +1,7 @@
 #pragma once
 #include "GamesList.h"
+#include "Game.h"
+#include <cstddef>
 #include <iostream>
 using namespace std;
 
@@ -135,7 +137,8 @@ ItemType GamesList::get(int index) {
   // check if index is valid
   bool success = (index >= 0) && (index < size);
   if (!success) {
-    return "";
+    // if index is out or range, throw out of bounds error
+    throw std::out_of_range("Index out of bounds!");
   }
 
   int counter = 0;
