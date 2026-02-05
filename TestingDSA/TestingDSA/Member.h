@@ -13,8 +13,8 @@ private:
 	string username;
 public:
 	Member();
-	Member(string username);
-	void setUsername(string username);
-	string getUsername();
+	Member(const string& username);
+	void setUsername(const string& username);
+	string getUsername() const;
 };
 

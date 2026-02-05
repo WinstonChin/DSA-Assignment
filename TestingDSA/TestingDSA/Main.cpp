@@ -7,8 +7,14 @@
 #include "Member.h"
 #include "Admin.h"
 #include "Game.h"
+#include "Record.h"
 
 using namespace std;
+
+// Group 8 Team Members
+// Verity Lee, S10268429
+// Winston Chin, S10266664
+// Asher Ng, S10267475
 
 struct GameNode {
     char name[100];
@@ -62,7 +68,7 @@ GameNode* findGameByName(const char* name) {
 void addBorrowed(LLMember& m, const char* name, bool isReturned, int rating = -1) {
     BorrowedNode* node = new BorrowedNode;
     strcpy_s(node->name, sizeof(node->name), name);
-    node->rating = rating; // store rating if returning
+    node->rating = rating;
     node->next = nullptr;
 
     BorrowedNode** head = isReturned ? &m.returned : &m.borrowed;
@@ -126,7 +132,7 @@ bool parseCSVLine(char* line, char fields[][100], int& fieldCount) {
     return true;
 }
 
-void loadGamesLL() { /
+void loadGamesLL() {
     gameHead = nullptr;
     gameTail = nullptr;
 
@@ -136,7 +142,7 @@ void loadGamesLL() { /
         return;
     }
     char line[200];
-    file.getline(line, 200); 
+    file.getline(line, 200);
     while (file.getline(line, 200)) {
         if (strlen(line) == 0) continue;
 
@@ -235,6 +241,58 @@ void memberHistory() {
     printBorrowedList(currentMember.returned);
 }
 
+bool checkMember(const string& username) {
+	ifstream file("Members.csv");
+    if (!file.is_open()) {
+        cout << "ERROR: Members.csv not found!\n";
+        return false;
+	}
+    string line;
+    bool found = false;
+    while (getline(file, line)) {
+        if (line == username) {
+            found = true;
+            break;
+        }
+    }
+    file.close();
+    return found;
+}
+
+Game findGame(string name) {
+	ifstream file("GamesList.csv");
+    if (!file.is_open()) {
+        cout << "ERROR: GamesList.csv not found!\n";
+        return Game();
+    }
+    
+	string line;
+	bool found = false;
+    while (getline(file, line)) {
+        if (line.substr(0, line.find(',')) == name) {
+            found = true;
+            char fields[10][100];
+            int fieldCount;
+            parseCSVLine(const_cast<char*>(line.c_str()), fields, fieldCount);
+            Game g;
+            g.setName(fields[0]);
+            g.setMinPlayers(atoi(fields[1]));
+            g.setMaxPlayers(atoi(fields[2]));
+            g.setMinTime(atoi(fields[3]));
+            g.setMaxTime(atoi(fields[4]));
+            g.setYear(atoi(fields[5]));
+            file.close();
+            return g;
+        }
+	}
+    if (!found) {
+        cout << "No games found with that name.\n";
+    }
+	file.close();
+    return Game();
+}
+
+
 void memberMenu() {
     int choice;
     do {
@@ -242,17 +300,65 @@ void memberMenu() {
         cout << "1. Borrow Game\n";
         cout << "2. Return Game\n";
         cout << "3. View History\n";
+        cout << "4. Add Record\n";
         cout << "0. Logout\n";
         cout << "Choice: ";
         cin >> choice;
         switch (choice) {
-        case 1: borrowGame(); break;
-        case 2: returnGame(); break;
-        case 3: memberHistory(); break;
+            case 1: borrowGame(); break;
+            case 2: returnGame(); break;
+            case 3: memberHistory(); break;
+            case 4:
+                {
+                    cin.ignore();
+					cout << "Enter name of game: ";
+					string gameName;
+					getline(cin, gameName);
+					Game game = findGame(gameName);
+                    while (game.getName() == "") {
+                        cout << "Game does not exist. Please re-enter name of game: ";
+                        getline(cin, gameName);
+                        game = findGame(gameName);
+                    }
+
+					cout << "Enter name of winner: ";
+					string winnerName;
+					getline(cin, winnerName);
+                    bool memExist = checkMember(winnerName);
+                    while(memExist == false) {
+                        cout << "Member does not exist. Please re-enter name of winner: ";
+                        getline(cin, winnerName);
+                        memExist = checkMember(winnerName);
+					}
+                    
+					cout << "Enter name of player one at a time, including yours. Enter 0 to quit: ";
+					string player;
+					getline(cin, player);
+                    bool exist = checkMember(player);
+                    Member members[100];
+                    int count = 0;
+                    while (player != "0") {
+                        while (exist == false) {
+                            cout << "Member does not exist. Please re-enter name of player: ";
+                            getline(cin, player);
+                            exist = checkMember(player);
+                        }
+						Member m(player);
+						members[count++] = m;
+
+                        cout << "Enter name of players. Enter 0 to quit: ";
+                        getline(cin, player);
+                        exist = checkMember(player);
+                    }
+					Record recordInfo(gameName, winnerName, members, count);
+					game.addRecord(recordInfo);
+                }
+				break;
         }
     } while (choice != 0);
 }
 
+// ================= ADMIN FUNCTIONS =================
 extern Game games[2500];
 extern void loadGames(Game games[], int& size);
 int gameSize = 0;
@@ -289,8 +395,20 @@ void adminMenu() {
             int minPlayers, maxPlayers, minTime, maxTime, year;
             cout << "Enter game name: ";
             getline(cin, name);
+
             cout << "Min players: ";
             cin >> minPlayers;
+            while (minPlayers < 1) {
+                cout << "Min players must be at least 1. Please re-enter.\n";
+                cout << "Min players: ";
+                cin >> minPlayers;
+            }
+            while (minPlayers > 100) {
+                cout << "Min players must be less than 100. Please re-enter.\n";
+                cout << "Min players: ";
+                cin >> minPlayers;
+            }
+
             cout << "Max players: ";
             cin >> maxPlayers;
             while (maxPlayers < minPlayers) {
@@ -298,18 +416,31 @@ void adminMenu() {
                 cout << "Max players: ";
                 cin >> maxPlayers;
             }
+            while (maxPlayers < 2) {
+                cout << "Max players must be at least 2. Please re-enter.\n";
+                cout << "Max players: ";
+                cin >> maxPlayers;
+            }
+            while (maxPlayers > 100) {
+                cout << "Max players is 100. Please re-enter.\n";
+                cout << "Max players: ";
+                cin >> maxPlayers;
+            }
+
             cout << "Min time (minutes): ";
             cin >> minTime;
             cout << "Max time (minutes): ";
             cin >> maxTime;
             while (maxTime < minTime) {
                 cout << "Max time cannot be less than min time. Please re-enter.\n";
+                cout << "Max time (minutes): ";
                 cin >> maxTime;
             }
             cout << "Year of release: ";
             cin >> year;
             while (year < 1950 || year > 2026) {
                 cout << "Year must be between 1950 and 2026. Please re-enter.\n";
+                cout << "Year of release: ";
                 cin >> year;
             }
             Game newGame(name, minPlayers, maxPlayers, minTime, maxTime, year, false, -1);
@@ -338,8 +469,9 @@ void adminMenu() {
     }
 }
 
+// ================= MAIN =================
 int main() {
-    loadGamesLL(); 
+    loadGamesLL();
 
     int choice;
     do {
@@ -354,10 +486,8 @@ int main() {
             adminMenu();
         else if (choice == 2)
             memberMenu();
-        else {
-            if (choice != 0)
-                cout << "Invalid input!\n";
-        }
+        else if (choice != 0)
+            cout << "Invalid input!\n";
     } while (choice != 0);
 
     return 0;

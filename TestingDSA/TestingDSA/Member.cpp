@@ -1,6 +1,6 @@
 #include "Member.h"
 
-Member::Member() {}
-Member::Member(string uname) { username = uname; }
-void Member::setUsername(string uname) { username = uname; }
-string Member::getUsername() { return username; }
+Member::Member() : username("") {}  
+Member::Member(const string& uname) : username(uname) {}  
+void Member::setUsername(const string& uname) { username = uname; }
+string Member::getUsername() const { return username; }
