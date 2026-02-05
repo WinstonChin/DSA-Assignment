@@ -164,6 +164,6 @@ void GamesList::print() {
   while (currentNode != nullptr) {
     Node *nodeToPrint = currentNode;
     currentNode = currentNode->next;
-    cout << nodeToPrint->item << "\n";
+    cout << nodeToPrint->item.getName() << "\n";
   }
 }

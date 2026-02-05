@@ -1,10 +1,11 @@
 // List.h - - Specification of List ADT (implemented using Pointers)
 #pragma once
+#include "Game.h"
 #include <iostream>
 #include <string>
 using namespace std;
 
-typedef string ItemType;
+typedef Game ItemType;
 
 class GamesList {
 private:
