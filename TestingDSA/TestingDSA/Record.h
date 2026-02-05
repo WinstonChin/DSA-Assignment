@@ -20,9 +20,11 @@ private:
 	int memberCount;  
 
 public:
+	//constructor
 	Record();
 	Record(string game, string winner, Member members[], int memberCount);  
 
+	//get and set
 	void setGame(string game);
 	string getGame();
 	void setWinner(string winner);

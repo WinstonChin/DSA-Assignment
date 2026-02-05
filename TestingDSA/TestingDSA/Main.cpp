@@ -469,6 +469,7 @@ void adminMenu() {
     }
 }
 
+//add login for members
 // ================= MAIN =================
 int main() {
     loadGamesLL();

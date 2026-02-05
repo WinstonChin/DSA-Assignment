@@ -12,8 +12,11 @@ class Member
 private:
 	string username;
 public:
+	//constuctor
 	Member();
 	Member(const string& username);
+
+	//get and set
 	void setUsername(const string& username);
 	string getUsername() const;
 };
