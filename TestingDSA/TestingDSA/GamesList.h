@@ -40,6 +40,9 @@ public:
   // get an item at a specified position of the list (retrieve)
   ItemType get(int index);
 
+  // get linked list by
+  // returning the pointer to the first Node
+
   // check if the list is empty
   bool isEmpty();
 
@@ -48,4 +51,12 @@ public:
 
   // display all the items in the list
   void print();
+
+  // for merge sort
+  // merge sort list
+  Node mergeSort(Node *head);
+  // split (to split the linked list in half)
+  Node split(Node *head);
+  // merge
+  void merge();
 };
