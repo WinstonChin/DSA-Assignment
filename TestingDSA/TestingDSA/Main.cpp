@@ -7,6 +7,7 @@
 #include "Admin.h"
 #include "Game.h"
 #include "Member.h"
+#include "Node.cpp"
 
 using namespace std;
 
@@ -348,7 +349,20 @@ void adminMenu() {
   }
 }
 
+// TODO: IF there's time, show first 25 games
 int main() {
+  // testing merge sort
+  // create hard coded linked list
+  Node *head = new Node(9);
+  head->next = new Node(8);
+  head->next->next = new Node(5);
+  head->next->next->next = new Node(2);
+  head->next->next->next->next = new Node(7);
+
+  head = mergeSort(head);
+  printList(head);
+
+  // main program
   loadGamesLL();
 
   int choice;

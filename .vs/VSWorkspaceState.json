@@ -2,8 +2,10 @@
   "ExpandedNodes": [
     "",
     "\\TestingDSA",
-    "\\TestingDSA\\TestingDSA"
+    "\\TestingDSA\\Debug",
+    "\\TestingDSA\\TestingDSA",
+    "\\TestingDSA\\x64\\Debug"
   ],
-  "SelectedNode": "\\TestingDSA\\TestingDSA\\Node.cpp",
+  "SelectedNode": "\\Node.exe",
   "PreviewInSolutionExplorer": false
 }

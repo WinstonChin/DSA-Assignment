@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\Mac\\Home\\Desktop\\development\\NP year 2 dev\\DSA_dev\\DSA-Assignment\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Mac\\Home\\Desktop\\development\\NP year 2 dev\\DSA_dev\\DSA-Assignment\\CppProperties.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:CppProperties.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Mac\\Home\\Desktop\\development\\NP year 2 dev\\DSA_dev\\DSA-Assignment\\TestingDSA\\TestingDSA\\Node.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:TestingDSA\\TestingDSA\\Node.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
@@ -23,25 +27,38 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "CppProperties.json",
+              "DocumentMoniker": "C:\\Mac\\Home\\Desktop\\development\\NP year 2 dev\\DSA_dev\\DSA-Assignment\\CppProperties.json",
+              "RelativeDocumentMoniker": "CppProperties.json",
+              "ToolTip": "C:\\Mac\\Home\\Desktop\\development\\NP year 2 dev\\DSA_dev\\DSA-Assignment\\CppProperties.json",
+              "RelativeToolTip": "CppProperties.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-02-07T08:45:17.833Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "Node.cpp",
               "DocumentMoniker": "C:\\Mac\\Home\\Desktop\\development\\NP year 2 dev\\DSA_dev\\DSA-Assignment\\TestingDSA\\TestingDSA\\Node.cpp",
               "RelativeDocumentMoniker": "TestingDSA\\TestingDSA\\Node.cpp",
               "ToolTip": "C:\\Mac\\Home\\Desktop\\development\\NP year 2 dev\\DSA_dev\\DSA-Assignment\\TestingDSA\\TestingDSA\\Node.cpp",
               "RelativeToolTip": "TestingDSA\\TestingDSA\\Node.cpp",
-              "ViewState": "AgIAAF0AAAAAz8zMzIwjwGUAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAZAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-02-07T07:57:32.286Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Main.cpp",
               "DocumentMoniker": "C:\\Mac\\Home\\Desktop\\development\\NP year 2 dev\\DSA_dev\\DSA-Assignment\\TestingDSA\\TestingDSA\\Main.cpp",
               "RelativeDocumentMoniker": "TestingDSA\\TestingDSA\\Main.cpp",
               "ToolTip": "C:\\Mac\\Home\\Desktop\\development\\NP year 2 dev\\DSA_dev\\DSA-Assignment\\TestingDSA\\TestingDSA\\Main.cpp",
               "RelativeToolTip": "TestingDSA\\TestingDSA\\Main.cpp",
-              "ViewState": "AgIAAAcAAAAAvMzMzMwHwGoAAAAYAAAAAAAAAA==",
+              "ViewState": "AgIAAFEBAAAAAAAAAAAmwFsBAAADAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-01-29T01:46:33.054Z",
               "EditorCaption": ""

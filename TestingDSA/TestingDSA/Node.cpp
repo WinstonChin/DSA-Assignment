@@ -100,6 +100,7 @@ void printList(Node *head) {
   cout << endl;
 }
 
+/*
 int main() {
   // create hard coded linked list
   Node *head = new Node(9);
@@ -113,3 +114,4 @@ int main() {
 
   return 0;
 }
+*/
