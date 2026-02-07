@@ -391,9 +391,9 @@ void displayGames() {
 }
 
 void adminMenu() {
-    Admin admin1;
-    int choice;
-    do {
+    Admin admin1 = Admin();
+    int choice = -1;
+    while (choice != 0) {
         cout << "\n---- Administrator Menu ----\n";
         cout << "1. Add Board Game\n";
         cout << "2. Remove Board Game\n";
@@ -404,10 +404,83 @@ void adminMenu() {
         cin >> choice;
         cin.ignore();
 
-        if (choice == 1 || choice == 2 || choice == 3 || choice == 4)
-            cout << "(Admin logic unchanged)\n";
+        if (choice == 1) {
+            string name;
+            int minPlayers, maxPlayers, minTime, maxTime, year;
+            cout << "Enter game name: ";
+            getline(cin, name);
 
-    } while (choice != 0);
+            cout << "Min players: ";
+            cin >> minPlayers;
+            while (minPlayers < 1) {
+                cout << "Min players must be at least 1. Please re-enter.\n";
+                cout << "Min players: ";
+                cin >> minPlayers;
+            }
+            while (minPlayers > 100) {
+                cout << "Min players must be less than 100. Please re-enter.\n";
+                cout << "Min players: ";
+                cin >> minPlayers;
+            }
+
+            cout << "Max players: ";
+            cin >> maxPlayers;
+            while (maxPlayers < minPlayers) {
+                cout << "Max players cannot be less than min players. Please re-enter.\n";
+                cout << "Max players: ";
+                cin >> maxPlayers;
+            }
+            while (maxPlayers < 2) {
+                cout << "Max players must be at least 2. Please re-enter.\n";
+                cout << "Max players: ";
+                cin >> maxPlayers;
+            }
+            while (maxPlayers > 100) {
+                cout << "Max players is 100. Please re-enter.\n";
+                cout << "Max players: ";
+                cin >> maxPlayers;
+            }
+
+            cout << "Min time (minutes): ";
+            cin >> minTime;
+            cout << "Max time (minutes): ";
+            cin >> maxTime;
+            while (maxTime < minTime) {
+                cout << "Max time cannot be less than min time. Please re-enter.\n";
+                cout << "Max time (minutes): ";
+                cin >> maxTime;
+            }
+            cout << "Year of release: ";
+            cin >> year;
+            while (year < 1950 || year > 2026) {
+                cout << "Year must be between 1950 and 2026. Please re-enter.\n";
+                cout << "Year of release: ";
+                cin >> year;
+            }
+            Game newGame(name, minPlayers, maxPlayers, minTime, maxTime, year, false, -1);
+            admin1.addGame(newGame);
+        }
+        else if (choice == 2) {
+            displayGames();
+            string name;
+            cout << "\nEnter game name to remove: ";
+            getline(cin, name);
+            admin1.removeGame(name);
+        }
+        else if (choice == 3) {
+            cout << "Enter new member username: ";
+            string username;
+            cin >> username;
+            admin1.addMember(username);
+        }
+        else if (choice == 4) {
+            cout << "\n=== Summary ===\n";
+            admin1.displayBorrowedReturned();
+        }
+        else if (choice != 0) {
+            cout << "Invalid input!\n";
+        }
+    }
 }
 
 
@@ -446,4 +519,5 @@ int main() {
 
     return 0;
 }
+
 
