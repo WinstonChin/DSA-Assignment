@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <cstring>
+#include <limits>
 
 #include "Member.h"
 #include "Admin.h"
@@ -271,6 +272,7 @@ void borrowGame() {
     addBorrowed(currentMember, g->name, false);
     cout << "You borrowed " << g->name << endl;
 }
+
 void returnGame() {
     if (!currentMember->borrowed) {
         cout << "You have no borrowed games.\n";
@@ -338,6 +340,57 @@ void showGameReviews(const char* gameName) {
         cout << "No reviews yet for this game.\n";
 }
 
+bool checkMember(const string& username) {
+    ifstream file("Members.csv");
+    if (!file.is_open()) {
+        cout << "ERROR: Members.csv not found!\n";
+        return false;
+    }
+    string line;
+    bool found = false;
+    while (getline(file, line)) {
+        if (line == username) {
+            found = true;
+            break;
+        }
+    }
+    file.close();
+    return found;
+}
+
+Game findGame(string name) {
+    ifstream file("GamesList.csv");
+    if (!file.is_open()) {
+        cout << "ERROR: GamesList.csv not found!\n";
+        return Game();
+    }
+
+    string line;
+    bool found = false;
+    while (getline(file, line)) {
+        if (line.substr(0, line.find(',')) == name) {
+            found = true;
+            char fields[10][100];
+            int fieldCount;
+            parseCSVLine(const_cast<char*>(line.c_str()), fields, fieldCount);
+            Game g;
+            g.setName(fields[0]);
+            g.setMinPlayers(atoi(fields[1]));
+            g.setMaxPlayers(atoi(fields[2]));
+            g.setMinTime(atoi(fields[3]));
+            g.setMaxTime(atoi(fields[4]));
+            g.setYear(atoi(fields[5]));
+            file.close();
+            return g;
+        }
+    }
+    if (!found) {
+        cout << "No games found with that name.\n";
+    }
+    file.close();
+    return Game();
+}
+
 void memberMenu() {
     int choice;
     do {
@@ -365,24 +418,66 @@ void memberMenu() {
             break;
         }
         case 5:
-            cout << "(Record feature unchanged)\n";
-            break;
+        {
+            cin.ignore();
+            cout << "Enter name of game: ";
+            string gameName;
+            getline(cin, gameName);
+            Game game = findGame(gameName);
+            while (game.getName() == "") {
+                cout << "Game does not exist. Please re-enter name of game: ";
+                getline(cin, gameName);
+                game = findGame(gameName);
+            }
+
+            cout << "Enter name of winner: ";
+            string winnerName;
+            getline(cin, winnerName);
+            bool memExist = checkMember(winnerName);
+            while (memExist == false) {
+                cout << "Member does not exist. Please re-enter name of winner: ";
+                getline(cin, winnerName);
+                memExist = checkMember(winnerName);
+            }
+
+            cout << "Enter name of player one at a time, including yours. Enter 0 to quit: ";
+            string player;
+            getline(cin, player);
+            bool exist = checkMember(player);
+            Member members[100];
+            int count = 0;
+            while (player != "0") {
+                while (exist == false) {
+                    cout << "Member does not exist. Please re-enter name of player: ";
+                    getline(cin, player);
+                    exist = checkMember(player);
+                }
+                Member m(player);
+                members[count++] = m;
+
+                cout << "Enter name of players. Enter 0 to quit: ";
+                getline(cin, player);
+                exist = checkMember(player);
+            }
+            Record recordInfo(gameName, winnerName, members, count);
+            game.addRecord(recordInfo);
+        }
+        break;
         }
     } while (choice != 0);
 }
 
-
-
+// ================= ADMIN FUNCTIONS =================
 extern Game games[2500];
 extern void loadGames(Game games[], int& size);
 int gameSize = 0;
-
 extern Member members[1000];
 extern void loadMembers(Member members[], int& size);
 int memberSize = 0;
 
 void displayGames() {
     loadGames(games, gameSize);
+
     cout << "\n===== Games =====\n";
     for (int i = 0; i < gameSize; i++) {
         if (i > 0 && games[i].getName() == games[i - 1].getName()) continue;
@@ -498,7 +593,6 @@ int main() {
         cout << "0. Exit\n";
         cout << "Choice: ";
         cin >> choice;
-        cin.ignore();
 
         if (choice == 1) {
             adminMenu();
@@ -511,9 +605,8 @@ int main() {
                 currentMember = nullptr;
             }
         }
-
         else if (choice != 0) {
-            cout << "Invalid input!\n";
+            cout << "Invalid input! Please enter 1, 2, or 0.\n";
         }
     }
 

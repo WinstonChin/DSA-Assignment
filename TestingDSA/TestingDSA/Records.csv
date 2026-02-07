@@ -1,4 +1,4 @@
-gameName,winner,players,review
-12 Days,user1,"user1,user2",
-12 Days,user1,"user2",
-BANG! The Dice Game,John,"user1,user2,John",
+gameName,winner,players
+12 Days,user1,"user1,user2"
+12 Days,user1,"user2"
+BANG! The Dice Game,John,"user1,user2,John"
