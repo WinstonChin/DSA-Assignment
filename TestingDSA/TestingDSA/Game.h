@@ -55,8 +55,4 @@ public:
 	// calculates the number of days a game is returned from today's date
 	// returns -1(if not returned) or the number of days between today's date and returnDate 
 	int returnedDays();
-
-	// add a Record for the game
-	// parameter: record - the Record object to be added
-	void addRecord(Record record);
 };

@@ -7,6 +7,8 @@ using namespace std;
 // Winston Chin, S10266664
 // Asher Ng, S10267475
 
+class Record;  // Forward declaration
+
 class Member
 {
 private:
@@ -19,5 +21,9 @@ public:
 	//get and set
 	void setUsername(const string& username);
 	string getUsername() const;
+
+	// add a Record for a game
+	// parameter: record - the Record object to be added
+	static void addRecord(Record record);
 };
 

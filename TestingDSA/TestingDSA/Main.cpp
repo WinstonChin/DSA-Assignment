@@ -782,10 +782,9 @@ void memberMenu() {
                 members[count++] = Member(currentMember->name);
 			}
 
-            // Create a Game object to call addRecord
-            Game game(gameName, 0, 0, 0, 0, 0, false, -1, -1);
+            // Create a Record and add it using Member::addRecord
             Record recordInfo(gameName, winnerName, members, count);
-            game.addRecord(recordInfo);
+            Member::addRecord(recordInfo);
         }
         break;
         }
