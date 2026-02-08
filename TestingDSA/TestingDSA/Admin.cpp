@@ -1,9 +1,12 @@
 #include "Admin.h"
 #include <fstream>
 
-const int max_size = 2500;
+//max games: 5000
+//max members: 500
+const int max_size = 5000;
+const int max_mem = 500;
 Game games[max_size];
-Member members[1000];
+Member members[max_mem];
 
 //constructor
 Admin::Admin() {}
@@ -191,7 +194,7 @@ void Admin::addGame(Game game) {
 	//write the array into GamesList.csv(rewrite the entire file)
 	storeGames(games, size);
 
-	cout << "Game added." << endl;
+	cout << "Game added.\n";
 }
 
 // remove a Game from games list

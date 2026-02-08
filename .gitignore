@@ -1,5 +1,12 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
-
-/TestingDSA/.vs
+# Ignore Visual Studio temporary files
+.vs/
+Debug/
+x64/
+*.obj
+*.pdb
+*.exe
+*.ilk
+*.log
+*.tlog
+*.idb
+*.recipe

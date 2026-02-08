@@ -1,4 +1,5 @@
 #pragma once
+#include "Record.h"
 #include <chrono>
 #include <iostream>
 #include <string>
@@ -58,4 +59,8 @@ public:
   // returns -1(if not returned) or the number of days between today's date and
   // returnDate
   int returnedDays();
+
+  // add a Record for the game
+  // parameter: record - the Record object to be added
+  void addRecord(Record record);
 };
