@@ -623,10 +623,11 @@ int main() {
             adminMenu();
         }
         else if (choice == 2) {
-            currentMember = loginMember();   
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            currentMember = loginMember();
 
             if (currentMember != nullptr) {
-                memberMenu();             
+                memberMenu();
                 currentMember = nullptr;
             }
         }
@@ -637,6 +638,7 @@ int main() {
 
     return 0;
 }
+
 
 
 
