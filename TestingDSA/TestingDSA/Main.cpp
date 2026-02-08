@@ -220,15 +220,41 @@ void displayMembers() {
 
 LLMember* loginMember() {
     displayMembers();
-    cout << "\nEnter member username (0 to cancel): ";
-    char name[50];
-    cin.getline(name, 50);
+    cout << "\nEnter member username OR number (0 to cancel): ";
 
-    if (strcmp(name, "0") == 0) return nullptr;
+    char input[50];
+    cin.getline(input, 50);
+
+    if (strcmp(input, "0") == 0)
+        return nullptr;
+
+    bool isNumber = true;
+    for (int i = 0; input[i] != '\0'; i++) {
+        if (!isdigit(input[i])) {
+            isNumber = false;
+            break;
+        }
+    }
+
+    if (isNumber) {
+        int index = atoi(input);
+        int currentIndex = 1;
+
+        LLMember* temp = memberHead;
+        while (temp) {
+            if (currentIndex == index)
+                return temp;
+            currentIndex++;
+            temp = temp->next;
+        }
+
+        cout << "Invalid member number.\n";
+        return nullptr;
+    }
 
     LLMember* temp = memberHead;
     while (temp) {
-        if (strcmp(temp->name, name) == 0)
+        if (strcmp(temp->name, input) == 0)
             return temp;
         temp = temp->next;
     }
@@ -236,7 +262,6 @@ LLMember* loginMember() {
     cout << "Member not found.\n";
     return nullptr;
 }
-
 
 void showGames(bool onlyAvailable) {
     cout << "\n===== Games =====\n";
@@ -612,5 +637,6 @@ int main() {
 
     return 0;
 }
+
 
 
