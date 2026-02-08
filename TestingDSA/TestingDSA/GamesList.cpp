@@ -173,7 +173,7 @@ void GamesList::print() {
 // merge sort list
 // using head instead so it is not mistaken for firstNode, though it is
 // essentially the same
-Node GamesList::mergeSort(Node *head) {
+GamesList::Node *GamesList::*mergeSort(Node *head) {
   // Base case:
   // if the list is empty or has only one node,
   // it is sort, or has no need to be sorted further
