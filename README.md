@@ -19,8 +19,9 @@
 ## Data Types
 
 Linked List ADT
-stack? idk
+Array
 
 ## Algorithm
 
-Merge Sort? wip
+Merge Sort
+Sequential Search 
