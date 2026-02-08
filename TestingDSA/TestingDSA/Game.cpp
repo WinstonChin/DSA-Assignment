@@ -266,8 +266,8 @@ static void loadRecords(Record records[], int &size, int &memCounter) {
     for (size_t i = 0; i < line.length(); i++) {
       if (line[i] == '"') {
         inQuotes = !inQuotes; // Turns true for opening ", false for closing "
-      } else if (line[i] == ',' &&
-                 !inQuotes) { // Split at commas outside of quotes
+      } 
+      else if (line[i] == ',' && !inQuotes) { // Split at commas outside of quotes
         if (fieldCount < MAX_FIELDS) {
           row[fieldCount++] = value; // Add value into row
         }
@@ -380,7 +380,7 @@ static void saveRecords(Record records[], int size, int memCounter) {
     for (int i = 0; i < size; i++) {
       if (records[i].getGame().find(',') != string::npos) { //if found comma and havent reached the end of the string
             file << "\"" << records[i].getGame() << "\",";
-        }
+      }
       else {
 			file << records[i].getGame() << ",";
       }
@@ -497,5 +497,5 @@ void Game::addRecord(Record record) {
 
   saveRecords(records, size, memCounter);
 
-  cout << "Record added.\n";
+  cout << "Record added." << endl;
 }

@@ -793,10 +793,10 @@ void memberMenu() {
 }
 
 // ================= ADMIN FUNCTIONS =================
-extern Game games[2500];
+extern Game games[5000];
 extern void loadGames(Game games[], int& size);
 int gameSize = 0;
-extern Member members[1000];
+extern Member members[500];
 extern void loadMembers(Member members[], int& size);
 int memberSize = 0;
 
@@ -890,7 +890,7 @@ void adminMenu() {
                 cout << "Year of release: ";
                 cin >> year;
             }
-            Game newGame(name, minPlayers, maxPlayers, minTime, maxTime, year, false, -1 ,-1);
+            Game newGame(name, minPlayers, maxPlayers, minTime, maxTime, year, false, -1, -1);
             admin1.addGame(newGame);
         }
         else if (choice == 2) {
@@ -960,7 +960,6 @@ int main() {
 }
 
 //Load reviews that were parsed into Review.csv displaying the username, game name, rating and review 
-
 void loadReviews() {
     ifstream file("Review.csv");
     if (!file.is_open()) {
