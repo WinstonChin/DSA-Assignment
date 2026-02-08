@@ -23,6 +23,9 @@ using namespace std;
 // Forward declaration
 int getTodayYYYYMMDD();
 void saveGamesLLToCSV();
+void saveReview(const char* username, const char* gameName, int rating, const char* review);
+void loadReviews();
+
 
 struct GameNode {
     char name[100];
@@ -459,6 +462,32 @@ void borrowGame() {
     cout << "You borrowed " << g->name << endl;
 }
 
+void saveReview(const char* username, const char* gameName, int rating, const char* review) {
+    ofstream file("Review.csv", ios::app);
+    if (!file.is_open()) {
+        cout << "ERROR: Could not open Review.csv!\n";
+        return;
+    }
+
+    // Escape double quotes in the review text if there are any
+    string reviewStr = review;
+    size_t pos = 0;
+    while ((pos = reviewStr.find('"', pos)) != string::npos) {
+        reviewStr.replace(pos, 1, "\"\"");
+        pos += 2;
+    }
+
+    // Format each field with proper quoting for CSV standards
+    file << "\"" << username << "\","
+        << "\"" << gameName << "\","
+        << rating << ","
+        << "\"" << reviewStr << "\"\n";
+
+    file.close();
+}
+
+
+
 /*
  * Allows a member to return a borrowed game
  * Prompts for rating and review, updates game status and member's history
@@ -482,28 +511,34 @@ void returnGame() {
     int rating;
     cout << "Rate the game 1-10: ";
     cin >> rating;
-    cin.ignore();
+    cin.ignore();  // To consume the newline character left by cin
 
     cout << "Write a review (optional): ";
     char review[200];
     cin.getline(review, 200);
 
+    // Remove the game from borrowed list
     if (!removeBorrowed(currentMember, name)) {
         cout << "Game not found.\n";
         return;
     }
 
+    // Find the game by name and mark it as returned
     GameNode* g = findGameByName(name);
     if (g) {
         g->isBorrowed = false;
         g->borrowDate = -1;  // Reset borrowDate when returned
     }
 
+    // Add the game to the returned list for the member
     addBorrowed(currentMember, name, true, rating, review);
-    
+
+    // Save the review to the CSV file
+    saveReview(currentMember->name, name, rating, review);
+
     // Save the updated game list to CSV
     saveGamesLLToCSV();
-    
+
     cout << "Returned " << name << " with your review.\n";
 }
 
@@ -521,36 +556,65 @@ void memberHistory() {
     printBorrowedList(currentMember->returned);
 }
 
-/*
- * Displays all reviews for a specific game
- * Searches through all members' returned games for matching reviews
- * Input: gameName - name of the game to show reviews for
- * Return: None
- */
+//Show Reviews of Game
 void showGameReviews(const char* gameName) {
     cout << "\n===== Reviews for " << gameName << " =====\n";
 
-    LLMember* tempMember = memberHead;
+    ifstream file("Review.csv");
+    if (!file.is_open()) {
+        cout << "ERROR: Could not open Review.csv!\n";
+        return;
+    }
+
+    string line;
     bool foundAny = false;
 
-    while (tempMember) {
-        BorrowedNode* r = tempMember->returned;
-        while (r) {
-            if (strcmp(r->name, gameName) == 0) {
-                foundAny = true;
-                cout << "- " << tempMember->name << " rated " << r->rating << "/10";
-                if (strlen(r->reviewText) > 0)
-                    cout << ": " << r->reviewText;
-                cout << endl;
+
+    while (getline(file, line)) {
+        if (line.empty()) continue;
+
+        char fields[4][200];  
+        int fieldCount = 0;
+        bool inQuotes = false;
+        int fieldIndex = 0;
+        int charIndex = 0;
+
+        for (int i = 0; i < line.size(); i++) {
+            char c = line[i];
+            if (c == '"') {
+                inQuotes = !inQuotes; 
             }
-            r = r->next;
+            else if (c == ',' && !inQuotes) {
+                fields[fieldIndex][charIndex] = '\0'; 
+                fieldIndex++;
+                charIndex = 0;
+            }
+            else {
+                fields[fieldIndex][charIndex++] = c;  
+            }
         }
-        tempMember = tempMember->next;
+        fields[fieldIndex][charIndex] = '\0';  
+
+        const char* username = fields[0];
+        const char* reviewGameName = fields[1];
+        int rating = atoi(fields[2]);
+        const char* reviewText = fields[3];
+
+        if (strcmp(reviewGameName, gameName) == 0) {
+            foundAny = true;
+            cout << "- " << username << " rated " << rating << "/10";
+            if (strlen(reviewText) > 0)
+                cout << ": " << reviewText;
+            cout << endl;
+        }
     }
+
+    file.close();
 
     if (!foundAny)
         cout << "No reviews yet for this game.\n";
 }
+
 
 /*
  * Checks if a member username exists in Members.csv
@@ -863,6 +927,7 @@ void adminMenu() {
 int main() {
     loadGamesLL();
     loadMembersLL();   
+    loadReviews();
 
     int choice = -1;
 
@@ -892,6 +957,67 @@ int main() {
     }
 
     return 0;
+}
+
+//Load reviews that were parsed into Review.csv displaying the username, game name, rating and review 
+
+void loadReviews() {
+    ifstream file("Review.csv");
+    if (!file.is_open()) {
+        cout << "ERROR: Could not open Review.csv!\n";
+        return;
+    }
+
+    string line;
+    getline(file, line);
+
+    while (getline(file, line)) {
+        if (line.empty()) continue;
+
+        char fields[4][200]; 
+        int fieldCount = 0;
+
+        bool inQuotes = false;
+        int fieldIndex = 0;
+        int charIndex = 0;
+
+        for (int i = 0; i < line.size(); i++) {
+            char c = line[i];
+            if (c == '"') {
+                inQuotes = !inQuotes;
+            }
+            else if (c == ',' && !inQuotes) {
+                fields[fieldIndex][charIndex] = '\0';
+                fieldIndex++;
+                charIndex = 0;
+            }
+            else {
+                fields[fieldIndex][charIndex++] = c;
+            }
+        }
+        fields[fieldIndex][charIndex] = '\0';
+        fieldCount = fieldIndex + 1;
+
+        if (fieldCount < 4) {
+            cout << "Skipping invalid line: " << line << endl;
+            continue;
+        }
+
+        const char* username = fields[0];
+        const char* gameName = fields[1];
+        int rating = atoi(fields[2]);
+        const char* reviewText = fields[3];
+
+        LLMember* member = memberHead;
+        while (member) {
+            if (strcmp(member->name, username) == 0) {
+                addBorrowed(member, gameName, true, rating, reviewText);
+                break;
+            }
+            member = member->next;
+        }
+    }
+    file.close();
 }
 
 
