@@ -169,25 +169,3 @@ void GamesList::print() {
     cout << nodeToPrint->item.getName() << "\n";
   }
 }
-
-// merge sort list
-// using head instead so it is not mistaken for firstNode, though it is
-// essentially the same
-GamesList::Node *GamesList::*mergeSort(Node *head) {
-  // Base case:
-  // if the list is empty or has only one node,
-  // it is sort, or has no need to be sorted further
-  if (head == nullptr || head->next == nullptr) {
-    return head;
-  }
-
-  // split the list into two halves
-  Node *second = split(head);
-
-  // recursively sort each half
-  head = mergeSort(head);
-  second = mergeSort(second);
-
-  // merge the two sorted halves
-  return merge(head, second);
-}
