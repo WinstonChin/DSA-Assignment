@@ -1,2 +1,8 @@
 ﻿  Main.cpp
-  TestingDSA.vcxproj -> C:\Mac\Home\Desktop\development\NP year 2 dev\DSA_dev\DSA-Assignment\TestingDSA\x64\Debug\TestingDSA.exe
+Main.obj : error LNK2019: unresolved external symbol "public: __cdecl GamesList::GamesList(void)" (??0GamesList@@QEAA@XZ) referenced in function "void __cdecl `dynamic initializer for 'gamesList''(void)" (??__EgamesList@@YAXXZ)
+Main.obj : error LNK2019: unresolved external symbol "public: class Game __cdecl GamesList::getGameByName(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >)" (?getGameByName@GamesList@@QEAA?AVGame@@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z) referenced in function "void __cdecl borrowGame(void)" (?borrowGame@@YAXXZ)
+Main.obj : error LNK2019: unresolved external symbol "public: bool __cdecl GamesList::updateGameByName(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >,class Game)" (?updateGameByName@GamesList@@QEAA_NV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@VGame@@@Z) referenced in function "void __cdecl borrowGame(void)" (?borrowGame@@YAXXZ)
+Main.obj : error LNK2019: unresolved external symbol "public: void __cdecl GamesList::loadGamesLL(void)" (?loadGamesLL@GamesList@@QEAAXXZ) referenced in function main
+Main.obj : error LNK2019: unresolved external symbol "public: void __cdecl GamesList::saveGamesLLToCSV(void)" (?saveGamesLLToCSV@GamesList@@QEAAXXZ) referenced in function "void __cdecl borrowGame(void)" (?borrowGame@@YAXXZ)
+Main.obj : error LNK2019: unresolved external symbol "public: void __cdecl GamesList::returnGame(void)" (?returnGame@GamesList@@QEAAXXZ) referenced in function "void __cdecl memberMenu(void)" (?memberMenu@@YAXXZ)
+C:\Mac\Home\Desktop\development\NP year 2 dev\DSA_dev\DSA-Assignment\TestingDSA\x64\Debug\TestingDSA.exe : fatal error LNK1120: 6 unresolved externals

@@ -97,6 +97,49 @@ private:
     return merge(head, second);
   }
 
+  // find game by name
+  // it's here cause I need to use Nodes
+  // Finds a game in the linked list by its name
+  // Performs linear search through the games list
+  // Input: name - game name to search for
+  // Return: GameNode* - pointer to found game node, or nullptr if not found
+  //
+  // This is by Winston as well
+  Node *findGameByName(const char *name) {
+    Node *temp = firstNode;
+    while (temp) {
+      if (strcmp(temp->item.getName().c_str(), name) == 0)
+        return temp;
+      temp = temp->next;
+    }
+    return nullptr;
+  }
+
+  // Displays a list of games
+  // Can filter to show only available games or all games
+  // Input: onlyAvailable - true to show only available games, false to show all
+  // Return: None
+public:
+  void showGames(bool onlyAvailable) {
+    extern GamesList *gamesList;
+    // TODO: add function
+
+    cout << "\n===== Games =====\n";
+    Node *temp = firstNode;
+    int i = 1;
+
+    while (temp) {
+      if (!onlyAvailable || !temp->item.getIsBorrowed()) {
+        cout << i << ". " << temp->item.getName();
+        if (temp->item.getIsBorrowed())
+          cout << " [BORROWED]";
+        cout << endl;
+        i++;
+      }
+      temp = temp->next;
+    }
+  }
+
 public:
   // constructor
   GamesList();
@@ -116,6 +159,12 @@ public:
   // get an item at a specified position of the list (retrieve)
   ItemType get(int index);
 
+  // get Game by name
+  ItemType getGameByName(string name);
+
+  // update Game by name
+  bool updateGameByName(string name, Game game);
+
   // get linked list by
   // returning the pointer to the first Node
 
@@ -128,6 +177,15 @@ public:
   // display all the items in the list
   void print();
 
-  // sort function using mergesort
+  // GamesList sort function using mergesort
   void sort();
+
+  // load games from CSV file
+  void loadGamesLL();
+
+  // save games to CSV file
+  void saveGamesLLToCSV();
+
+  // return game
+  void returnGame();
 };
