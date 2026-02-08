@@ -19,16 +19,14 @@ private:
 	int minTime;
 	int maxTime;
 	int year;
-	int rating;
 	bool isBorrowed;
 	int borrowDate; //stored as YYYYMMDD
 	int returnDate; //-1 if not returned yet, else store actual date as YYYYMMDD
-	Game* next;
 
 public:
 	// constructor
 	Game();
-	Game(string name, int minPlayers, int maxPlayers, int minTime, int maxTime, int year, bool isBorrowed, int returnDate);
+	Game(string name, int minPlayers, int maxPlayers, int minTime, int maxTime, int year, bool isBorrowed, int borrowDate, int returnDate);
 	
 	//  get and set
 	void setName(string name);

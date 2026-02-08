@@ -1,4 +1,12 @@
-gameName,winner,players
-12 Days,user1,"user1,user2"
-12 Days,user1,"user2"
-BANG! The Dice Game,John,"user1,user2,John"
+gameName,winner,players,timestamp
+12 Days,user1,"user1,user2",20250201143522
+12 Days,user1,"user2",20250202101245
+"Artifacts, Inc.",John,"John",20260208190941
+BANG! The Dice Game,John,"user1,user2,John",20250203154830
+Bad Company,username,"John,username",20250204091015
+Bad Company,John,"user1,John",20250205162330
+Bad Company,user1,"user2,user1,John",20250206133045
+WINK,user1,"John,user1",20260208182815
+WINK,user2,"user2",20260208183233
+Zendo,username,"John,username",20250207112200
+Zendo,John,"user1,John",20250208175835

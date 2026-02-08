@@ -8,13 +8,24 @@ const int max_mem = 500;
 Game games[max_size];
 Member members[max_mem];
 
-//constructor
+/*
+ * Default constructor for Admin class
+ * Initializes an Admin object with no parameters
+ * Input: None
+ * Return: None
+ */
 Admin::Admin() {}
 
 //forward declaration for merge function
 void merge(Game games[], int first, int mid, int last);
 
-//helper function to load members from csv
+/*
+ * Loads member data from Members.csv file into an array
+ * Reads each line from the CSV file and creates Member objects
+ * Input: members[] - array to store Member objects
+ *        size - reference to integer that will store the number of members loaded
+ * Return: None (updates size parameter by reference)
+ */
 void loadMembers(Member members[], int& size) {
 	string line;
 	ifstream file;
@@ -37,7 +48,14 @@ void loadMembers(Member members[], int& size) {
 	file.close();
 }
 
-//helper function to load games from csv
+/*
+ * Loads game data from GamesList.csv file into an array
+ * Parses CSV fields including quoted strings with commas
+ * Handles isBorrowed, borrowDate, and returnDate fields
+ * Input: games[] - array to store Game objects
+ *        size - reference to integer that will store the number of games loaded
+ * Return: None (updates size parameter by reference)
+ */
 void loadGames(Game games[], int& size) {
 	string line;
 	ifstream file;
@@ -81,22 +99,32 @@ void loadGames(Game games[], int& size) {
 
 		if (fieldCount >= 6) {
 			if(row[7].empty()) {
-				row[7] = "-1"; //set returnDate to -1 if empty
+				row[7] = "-1"; //set borrowDate to -1 if empty
+			}
+			if (row[8].empty()) {
+				row[8] = "-1"; //set returnDate to -1 if empty
 			}
 
 			if(row[6] == "true") {
-				Game game(row[0], stoi(row[1]), stoi(row[2]), stoi(row[3]), stoi(row[4]), stoi(row[5]), true, stoi(row[7]));
+				Game game(row[0], stoi(row[1]), stoi(row[2]), stoi(row[3]), stoi(row[4]), stoi(row[5]), true, stoi(row[7]), stoi(row[8]));
 				games[size++] = game;
 				continue;
 			}
-			Game game(row[0], stoi(row[1]), stoi(row[2]), stoi(row[3]), stoi(row[4]), stoi(row[5]), false, stoi(row[7]));
+			Game game(row[0], stoi(row[1]), stoi(row[2]), stoi(row[3]), stoi(row[4]), stoi(row[5]), false, stoi(row[7]), stoi(row[8]));
 			games[size++] = game;
 		}
 	}
 	file.close();
 }
 
-//helper function to store games into csv
+/*
+ * Saves game data from array into GamesList.csv file
+ * Writes all game attributes including borrow status and dates
+ * Handles game names with commas by enclosing them in quotes
+ * Input: games[] - array of Game objects to save
+ *        size - number of games in the array
+ * Return: None
+ */
 void storeGames(Game games[],int size) {
 	ofstream file;
 	file.open("GamesList.csv");
@@ -104,7 +132,7 @@ void storeGames(Game games[],int size) {
 		cout << "Couldn't open file" << endl;
 	}
 	else {
-		file << "name,minPlayers,maxPlayers,minTime,maxTime,year,isBorrowed,returnDate" << endl; //header
+		file << "name,minPlayers,maxPlayers,minTime,maxTime,year,isBorrowed,borrowDate,returnDate" << endl; //header
 		for (int i = 0; i < size; i++) {
 			string isBorrowed;
 			if (games[i].getIsBorrowed()) {
@@ -116,17 +144,24 @@ void storeGames(Game games[],int size) {
 
 			//if game name has a comma, enclose it in quotes
 			if (games[i].getName().find(',') != string::npos) { //if found comma and havent reached the end of the string
-				file << "\"" << games[i].getName() << "\"," << games[i].getMinPlayers() << "," << games[i].getMaxPlayers() << "," << games[i].getMinTime() << "," << games[i].getMaxTime() << "," << games[i].getYear() << "," << isBorrowed << "," << games[i].getReturnDate() << endl;
+				file << "\"" << games[i].getName() << "\"," << games[i].getMinPlayers() << "," << games[i].getMaxPlayers() << "," << games[i].getMinTime() << "," << games[i].getMaxTime() << "," << games[i].getYear() << "," << isBorrowed << "," << games[i].getBorrowDate() << "," << games[i].getReturnDate() << endl;
 			}
 			else {
-				file << games[i].getName() << "," << games[i].getMinPlayers() << "," << games[i].getMaxPlayers() << "," << games[i].getMinTime() << "," << games[i].getMaxTime() << "," << games[i].getYear() << "," << isBorrowed << "," << games[i].getReturnDate() << endl;
+				file << games[i].getName() << "," << games[i].getMinPlayers() << "," << games[i].getMaxPlayers() << "," << games[i].getMinTime() << "," << games[i].getMaxTime() << "," << games[i].getYear() << "," << isBorrowed << "," << games[i].getBorrowDate() << "," << games[i].getReturnDate() << endl;
 			}
 		}
 		file.close();
 	}
 }
 
-//mergesort helper functions
+/*
+ * Recursively sorts an array of Game objects by name using merge sort algorithm
+ * Divides the array into halves and merges them in sorted order
+ * Input: games[] - array of Game objects to sort
+ *        first - starting index of the subarray to sort
+ *        last - ending index of the subarray to sort
+ * Return: None (sorts array in place)
+ */
 void mergesort(Game games[], int first, int last) {
 	if (first < last) {    // more than 1 items 
 		int mid = (first + last) / 2;    // index of midpoint
@@ -136,17 +171,25 @@ void mergesort(Game games[], int first, int last) {
 	}
 }
 
+/*
+ * Merges two sorted subarrays into a single sorted array
+ * Compares game names alphabetically to determine merge order
+ * Input: games[] - array containing the two subarrays to merge
+ *        first - starting index of first subarray
+ *        mid - ending index of first subarray
+ *        last - ending index of second subarray
+ * Return: None (merges in place into original array)
+ */
 void merge(Game games[], int first, int mid, int last) {
-	Game tempArray[max_size];   // temporary array
+	// Allocate tempArray on the heap to avoid large stack usage
+	Game* tempArray = new Game[max_size];
 
-	// initialize the local indexes to indicate the subarrays
-	int first1 = first;     // beginning of first subarray
-	int last1 = mid;        // end of first subarray
-	int first2 = mid + 1;   // beginning of second subarray
-	int last2 = last;       // end of second subarray
+	int first1 = first;
+	int last1 = mid;
+	int first2 = mid + 1;
+	int last2 = last;
 
-	// while neither subarray is empty, copy the smaller item into the temporary array
-	int index = 0;    // next available location in tempArray
+	int index = 0;
 	while ((first1 <= last1) && (first2 <= last2)) {
 		if (games[first1].getName() < games[first2].getName()) {
 			tempArray[index] = games[first1];
@@ -159,22 +202,26 @@ void merge(Game games[], int first, int mid, int last) {
 		index++;
 	}
 
-	// finish off the nonempty subarray to the back of tempArray
-	// finish off the first subarray, if necessary
 	for (; first1 <= last1; first1++, index++)
 		tempArray[index] = games[first1];
-	// finish off the second subarray, if necessary
 	for (; first2 <= last2; first2++, index++)
 		tempArray[index] = games[first2];
 
-	// copy the result back into the original array
 	for (int index2 = first, index = 0; index2 <= last; index++, index2++)
 		games[index2] = tempArray[index];
+
+	// Free heap memory
+	delete[] tempArray;
 }
 
 
 //----------------Admin class functions------------------//
-//add Game to the games list
+/*
+ * Adds a new game to the games list and saves to CSV
+ * Loads existing games, adds new game, sorts alphabetically, and saves
+ * Input: game - Game object to be added to the list
+ * Return: None
+ */
 void Admin::addGame(Game game) {
 	//load games into an array
 	int size = 0;
@@ -197,7 +244,12 @@ void Admin::addGame(Game game) {
 	cout << "Game added.\n";
 }
 
-// remove a Game from games list
+/*
+ * Removes all games with the specified name from the games list
+ * Loads games, removes matching entries (including duplicates), sorts, and saves
+ * Input: name - name of the game to remove
+ * Return: None
+ */
 void Admin::removeGame(string name) {
 	//load games into an array
 	int size = 0;
@@ -231,7 +283,12 @@ void Admin::removeGame(string name) {
 	cout << "Game removed.\n";
 }
 
-// add a Member to members list
+/*
+ * Adds a new member to the members list
+ * Checks for duplicate usernames before adding to Members.csv
+ * Input: username - username of the new member to add
+ * Return: None
+ */
 void Admin::addMember(string username) {
 	int size = 0;
 	loadMembers(members, size);
@@ -256,7 +313,13 @@ void Admin::addMember(string username) {
 	}
 }
 
-// display summary of borrowed and returned games
+/*
+ * Displays a summary of currently borrowed games and recently returned games
+ * Shows borrowed games with number of days borrowed
+ * Shows games returned within the past 7 days
+ * Input: None
+ * Return: None
+ */
 void Admin::displayBorrowedReturned() {
 	int size = 0;
 	loadGames(games, size);
@@ -265,7 +328,8 @@ void Admin::displayBorrowedReturned() {
 	cout << "Borrowed Games:\n";
 	for(int i= 0; i < size; i++) {
 		if (games[i].getIsBorrowed()) {
-			cout << games[i].getName() << endl;
+			int borrowedDays = games[i].borrowedDays();
+			cout << games[i].getName() << " (borrowed " << borrowedDays << " days ago)" << endl;
 			borrowedCount++;
 		}
 	}

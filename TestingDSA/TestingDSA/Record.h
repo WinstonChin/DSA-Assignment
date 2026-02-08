@@ -9,15 +9,16 @@ using namespace std;
 // Winston Chin, S10266664
 // Asher Ng, S10267475
 
-const int max_mem = 100;
+const int max_players = 100;
 
 class Record
 {
 private:
 	string game;
 	string winner;
-	Member members[max_mem];
+	Member members[max_players];
 	int memberCount;  
+	long long timestamp; //YYYYMMDDHHMMSS format
 
 public:
 	//constructor
@@ -32,5 +33,7 @@ public:
 	void setMembers(Member members[], int memberCount); 
 	Member* getMembers();
 	int getMemberCount();  
+	void setTimestamp(long long timestamp);
+	long long getTimestamp();
 };
 
