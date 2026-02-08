@@ -770,7 +770,8 @@ void adminMenu() {
         cout << "0. Logout\n";
         cout << "Choice: ";
         cin >> choice;
-        cin.ignore();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
 
         if (choice == 1) {
             string name;
@@ -838,7 +839,7 @@ void adminMenu() {
         else if (choice == 3) {
             cout << "Enter new member username: ";
             string username;
-            cin >> username;
+            getline(cin, username);
             admin1.addMember(username);
         }
         else if (choice == 4) {
