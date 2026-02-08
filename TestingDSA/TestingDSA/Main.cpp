@@ -244,7 +244,8 @@ void loadGamesLL(GamesList gamesList) {
     // into GamesList
     // TODO: add a GamesList first brub
 
-    // first, create a temp Game object and store data there
+    // create a temp Game object to store data there
+    // since gameList is a linked list nodes containing Game objects
     Game tempGame;
     tempGame.setIsBorrowed(false);
     tempGame.setBorrowDate(-1);
@@ -254,9 +255,6 @@ void loadGamesLL(GamesList gamesList) {
     tempGame.setMinTime(atoi(fields[3]));
     tempGame.setMaxTime(atoi(fields[4]));
     tempGame.setYear(atoi(fields[5]));
-
-    // then, add temp Game object to gamesList
-    gamesList.add(tempGame);
 
     /*
     GameNode *g = new GameNode;
@@ -273,15 +271,20 @@ void loadGamesLL(GamesList gamesList) {
 
     // Handle isBorrowed field
     if (fieldCount >= 7) {
-      g->isBorrowed = (strcmp(fields[6], "true") == 0);
+      tempGame.setIsBorrowed((strcmp(fields[6], "true") == 0));
+      // g->isBorrowed = (strcmp(fields[6], "true") == 0);
     }
 
     // Handle borrowDate field (field 7)
     if (fieldCount >= 8) {
-      g->borrowDate = atoi(fields[7]);
+      tempGame.setBorrowDate(atoi(fields[7]));
+      // g->borrowDate = atoi(fields[7]);
     }
 
-    appendGame(g);
+    // add temp Game to gamesList
+    gamesList.add(tempGame);
+
+    // appendGame(g);
   }
   file.close();
 }
