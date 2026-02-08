@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstring>
 #include <limits>
+#include <chrono>
 
 #include "Member.h"
 #include "Admin.h"
@@ -19,6 +20,10 @@ using namespace std;
 // Asher Ng, S10267475
 // =======================================================
 
+// Forward declaration
+int getTodayYYYYMMDD();
+void saveGamesLLToCSV();
+
 struct GameNode {
     char name[100];
     int minPlayers;
@@ -27,6 +32,7 @@ struct GameNode {
     int maxTime;
     int year;
     bool isBorrowed;
+    int borrowDate;  // YYYYMMDD format
     GameNode* next;
 };
 
@@ -52,7 +58,30 @@ GameNode* gameTail = nullptr;
 LLMember* memberHead = nullptr;    
 LLMember* currentMember = nullptr;
 
+/*
+ * Gets today's date as an integer in YYYYMMDD format
+ * Used for tracking borrow dates
+ * Input: None
+ * Return: int - today's date as YYYYMMDD
+ */
+int getTodayYYYYMMDD() {
+    auto now = std::chrono::system_clock::now();
+    time_t tt = std::chrono::system_clock::to_time_t(now);
+    tm local_tm;
+    localtime_s(&local_tm, &tt);
+    int year = local_tm.tm_year + 1900;
+    int month = local_tm.tm_mon + 1;
+    int day = local_tm.tm_mday;
+    return year * 10000 + month * 100 + day;
+}
 
+
+/*
+ * Appends a game node to the end of the games linked list
+ * Updates head and tail pointers as needed
+ * Input: g - pointer to GameNode to append
+ * Return: None
+ */
 void appendGame(GameNode* g) {
     g->next = nullptr;
     if (!gameHead) {
@@ -64,6 +93,12 @@ void appendGame(GameNode* g) {
     }
 }
 
+/*
+ * Finds a game in the linked list by its name
+ * Performs linear search through the games list
+ * Input: name - game name to search for
+ * Return: GameNode* - pointer to found game node, or nullptr if not found
+ */
 GameNode* findGameByName(const char* name) {
     GameNode* temp = gameHead;
     while (temp) {
@@ -75,6 +110,16 @@ GameNode* findGameByName(const char* name) {
 }
 
 
+/*
+ * Adds a borrowed or returned game to a member's history
+ * Creates a new BorrowedNode and adds it to the appropriate list
+ * Input: m - pointer to LLMember
+ *        name - game name
+ *        isReturned - true to add to returned list, false for borrowed list
+ *        rating - game rating (1-10, -1 if not rated)
+ *        review - review text (empty string if none)
+ * Return: None
+ */
 void addBorrowed(LLMember* m, const char* name, bool isReturned, int rating = -1, const char* review = "") {
     BorrowedNode* node = new BorrowedNode;
     strcpy_s(node->name, sizeof(node->name), name);
@@ -93,6 +138,13 @@ void addBorrowed(LLMember* m, const char* name, bool isReturned, int rating = -1
 }
 
 
+/*
+ * Removes a game from a member's borrowed list
+ * Searches and deletes the node from the borrowed linked list
+ * Input: m - pointer to LLMember
+ *        name - game name to remove
+ * Return: bool - true if game was found and removed, false otherwise
+ */
 bool removeBorrowed(LLMember* m, const char* name) {
     BorrowedNode* temp = m->borrowed;
     BorrowedNode* prev = nullptr;
@@ -112,6 +164,12 @@ bool removeBorrowed(LLMember* m, const char* name) {
     return false;
 }
 
+/*
+ * Prints a list of borrowed or returned games
+ * Displays game names and ratings if available
+ * Input: head - pointer to first BorrowedNode in the list
+ * Return: None
+ */
 void printBorrowedList(BorrowedNode* head) {
     BorrowedNode* temp = head;
     while (temp) {
@@ -125,6 +183,14 @@ void printBorrowedList(BorrowedNode* head) {
 
 
 
+/*
+ * Parses a CSV line into individual fields
+ * Handles quoted strings containing commas
+ * Input: line - C-string containing the CSV line
+ *        fields - 2D array to store parsed fields
+ *        fieldCount - reference to store number of fields parsed
+ * Return: bool - true if parsing succeeded
+ */
 bool parseCSVLine(char* line, char fields[][100], int& fieldCount) {
     fieldCount = 0;
     bool inQuotes = false;
@@ -151,6 +217,13 @@ bool parseCSVLine(char* line, char fields[][100], int& fieldCount) {
 }
 
 
+/*
+ * Loads games from GamesList.csv into a linked list
+ * Parses each line and creates GameNode objects
+ * Handles borrow status and borrow date fields
+ * Input: None
+ * Return: None (updates global gameHead and gameTail pointers)
+ */
 void loadGamesLL() {
     gameHead = nullptr;
     gameTail = nullptr;
@@ -173,6 +246,7 @@ void loadGamesLL() {
 
         GameNode* g = new GameNode;
         g->isBorrowed = false;
+        g->borrowDate = -1;
         g->next = nullptr;
         strcpy_s(g->name, sizeof(g->name), fields[0]);
         g->minPlayers = atoi(fields[1]);
@@ -180,6 +254,16 @@ void loadGamesLL() {
         g->minTime = atoi(fields[3]);
         g->maxTime = atoi(fields[4]);
         g->year = atoi(fields[5]);
+        
+        // Handle isBorrowed field
+        if (fieldCount >= 7) {
+            g->isBorrowed = (strcmp(fields[6], "true") == 0);
+        }
+        
+        // Handle borrowDate field (field 7)
+        if (fieldCount >= 8) {
+            g->borrowDate = atoi(fields[7]);
+        }
 
         appendGame(g);
     }
@@ -187,6 +271,12 @@ void loadGamesLL() {
 }
 
 
+/*
+ * Loads members from Members.csv into a linked list
+ * Creates LLMember nodes for each username in the file
+ * Input: None
+ * Return: None (updates global memberHead pointer)
+ */
 void loadMembersLL() {
     ifstream file("Members.csv");
     if (!file.is_open()) {
@@ -208,6 +298,53 @@ void loadMembersLL() {
     file.close();
 }
 
+/*
+ * Saves the games linked list back to GamesList.csv
+ * Writes all game data including borrow status and dates
+ * Handles game names containing commas by enclosing in quotes
+ * Input: None
+ * Return: None
+ */
+void saveGamesLLToCSV() {
+    ofstream file("GamesList.csv");
+    if (!file.is_open()) {
+        cout << "ERROR: Cannot write to GamesList.csv!\n";
+        return;
+    }
+    
+    // Write header
+    file << "name,minPlayers,maxPlayers,minTime,maxTime,year,isBorrowed,borrowDate,returnDate" << endl;
+    
+    GameNode* temp = gameHead;
+    while (temp) {
+        // Handle game names with commas
+        if (strchr(temp->name, ',') != nullptr) {
+            file << "\"" << temp->name << "\"";
+        } else {
+            file << temp->name;
+        }
+        
+        file << "," << temp->minPlayers
+             << "," << temp->maxPlayers
+             << "," << temp->minTime
+             << "," << temp->maxTime
+             << "," << temp->year
+             << "," << (temp->isBorrowed ? "true" : "false")
+             << "," << temp->borrowDate
+             << ",-1" << endl;  // returnDate always -1 for LL version
+        
+        temp = temp->next;
+    }
+    
+    file.close();
+}
+
+/*
+ * Displays a numbered list of all members
+ * Shows member usernames with index numbers
+ * Input: None
+ * Return: None
+ */
 void displayMembers() {
     cout << "\n===== Members =====\n";
     LLMember* temp = memberHead;
@@ -218,6 +355,12 @@ void displayMembers() {
     }
 }
 
+/*
+ * Prompts user to log in as a member by username or number
+ * Validates input and returns the selected member
+ * Input: None
+ * Return: LLMember* - pointer to logged-in member, or nullptr if cancelled
+ */
 LLMember* loginMember() {
     displayMembers();
     cout << "\nEnter member username OR number (0 to cancel): ";
@@ -263,6 +406,12 @@ LLMember* loginMember() {
     return nullptr;
 }
 
+/*
+ * Displays a list of games
+ * Can filter to show only available games or all games
+ * Input: onlyAvailable - true to show only available games, false to show all
+ * Return: None
+ */
 void showGames(bool onlyAvailable) {
     cout << "\n===== Games =====\n";
     GameNode* temp = gameHead;
@@ -279,6 +428,13 @@ void showGames(bool onlyAvailable) {
     }
 }
 
+/*
+ * Allows a member to borrow an available game
+ * Updates game status, borrow date, and member's borrowed list
+ * Saves changes to CSV file
+ * Input: None (uses global currentMember)
+ * Return: None
+ */
 void borrowGame() {
     showGames(true);
     cout << "\nEnter game name to borrow (or 0 to cancel): ";
@@ -294,10 +450,22 @@ void borrowGame() {
     }
 
     g->isBorrowed = true;
+    g->borrowDate = getTodayYYYYMMDD();
     addBorrowed(currentMember, g->name, false);
+    
+    // Save the updated game list with borrowDate to CSV
+    saveGamesLLToCSV();
+    
     cout << "You borrowed " << g->name << endl;
 }
 
+/*
+ * Allows a member to return a borrowed game
+ * Prompts for rating and review, updates game status and member's history
+ * Saves changes to CSV file
+ * Input: None (uses global currentMember)
+ * Return: None
+ */
 void returnGame() {
     if (!currentMember->borrowed) {
         cout << "You have no borrowed games.\n";
@@ -326,13 +494,26 @@ void returnGame() {
     }
 
     GameNode* g = findGameByName(name);
-    if (g) g->isBorrowed = false;
+    if (g) {
+        g->isBorrowed = false;
+        g->borrowDate = -1;  // Reset borrowDate when returned
+    }
 
     addBorrowed(currentMember, name, true, rating, review);
+    
+    // Save the updated game list to CSV
+    saveGamesLLToCSV();
+    
     cout << "Returned " << name << " with your review.\n";
 }
 
 
+/*
+ * Displays the current member's borrow history
+ * Shows both currently borrowed and previously returned games
+ * Input: None (uses global currentMember)
+ * Return: None
+ */
 void memberHistory() {
     cout << "\nBorrowed:\n";
     printBorrowedList(currentMember->borrowed);
@@ -340,6 +521,12 @@ void memberHistory() {
     printBorrowedList(currentMember->returned);
 }
 
+/*
+ * Displays all reviews for a specific game
+ * Searches through all members' returned games for matching reviews
+ * Input: gameName - name of the game to show reviews for
+ * Return: None
+ */
 void showGameReviews(const char* gameName) {
     cout << "\n===== Reviews for " << gameName << " =====\n";
 
@@ -365,6 +552,11 @@ void showGameReviews(const char* gameName) {
         cout << "No reviews yet for this game.\n";
 }
 
+/*
+ * Checks if a member username exists in Members.csv
+ * Input: username - username to search for
+ * Return: bool - true if member exists, false otherwise
+ */
 bool checkMember(const string& username) {
     ifstream file("Members.csv");
     if (!file.is_open()) {
@@ -383,39 +575,45 @@ bool checkMember(const string& username) {
     return found;
 }
 
-Game findGame(string name) {
+/*
+ * Checks if a game exists in GamesList.csv by name
+ * Handles game names with or without quotes
+ * Input: name - game name to search for
+ * Return: bool - true if game exists, false otherwise
+ */
+bool findGame(string name) {
     ifstream file("GamesList.csv");
     if (!file.is_open()) {
         cout << "ERROR: GamesList.csv not found!\n";
-        return Game();
+        return false;
     }
 
     string line;
-    bool found = false;
+    getline(file, line); // skip header
+    
     while (getline(file, line)) {
-        if (line.substr(0, line.find(',')) == name) {
-            found = true;
-            char fields[10][100];
-            int fieldCount;
-            parseCSVLine(const_cast<char*>(line.c_str()), fields, fieldCount);
-            Game g;
-            g.setName(fields[0]);
-            g.setMinPlayers(atoi(fields[1]));
-            g.setMaxPlayers(atoi(fields[2]));
-            g.setMinTime(atoi(fields[3]));
-            g.setMaxTime(atoi(fields[4]));
-            g.setYear(atoi(fields[5]));
+        if (line.empty()) continue;
+        
+        char fields[10][100];
+        int fieldCount;
+        parseCSVLine(const_cast<char*>(line.c_str()), fields, fieldCount);
+        
+        if (fieldCount > 0 && strcmp(fields[0], name.c_str()) == 0) {
             file.close();
-            return g;
+            return true;
         }
     }
-    if (!found) {
-        cout << "No games found with that name.\n";
-    }
+    
     file.close();
-    return Game();
+    return false;
 }
 
+/*
+ * Displays and handles the member menu interface
+ * Provides options to borrow, return, view history, read reviews, and add records
+ * Input: None (uses global currentMember)
+ * Return: None
+ */
 void memberMenu() {
     int choice;
     do {
@@ -444,46 +642,84 @@ void memberMenu() {
         }
         case 5:
         {
-            cin.ignore();
             cout << "Enter name of game: ";
             string gameName;
             getline(cin, gameName);
-            Game game = findGame(gameName);
-            while (game.getName() == "") {
+            bool gameExists = findGame(gameName);
+            while (!gameExists) {
                 cout << "Game does not exist. Please re-enter name of game: ";
                 getline(cin, gameName);
-                game = findGame(gameName);
+                gameExists = findGame(gameName);
             }
 
             cout << "Enter name of winner: ";
             string winnerName;
             getline(cin, winnerName);
             bool memExist = checkMember(winnerName);
-            while (memExist == false) {
+            while (!memExist) {
                 cout << "Member does not exist. Please re-enter name of winner: ";
                 getline(cin, winnerName);
                 memExist = checkMember(winnerName);
             }
 
-            cout << "Enter name of player one at a time, including yours. Enter 0 to quit: ";
+            cout << "Enter name of players one at a time, including yours. Enter 0 to quit: ";
             string player;
             getline(cin, player);
             bool exist = checkMember(player);
             Member members[100];
             int count = 0;
             while (player != "0") {
-                while (exist == false) {
+                while (!exist) {
                     cout << "Member does not exist. Please re-enter name of player: ";
                     getline(cin, player);
                     exist = checkMember(player);
                 }
-                Member m(player);
-                members[count++] = m;
+                
+                // Check if player already exists in the list
+                bool alreadyAdded = false;
+                for (int i = 0; i < count; i++) {
+                    if (members[i].getUsername() == player) {
+                        alreadyAdded = true;
+                        cout << "Player " << player << " has already been added.\n";
+                        break;
+                    }
+                }
+                if (!alreadyAdded) {
+                    Member m(player);
+                    members[count++] = m;
+                }
 
-                cout << "Enter name of players. Enter 0 to quit: ";
+                cout << "Enter name of players one at a time, including yours. Enter 0 to quit: ";
                 getline(cin, player);
                 exist = checkMember(player);
             }
+
+			// Ensure winner is in members list
+            bool winnerExists = false;
+            for (int i = 0; i < count; i++) {
+                if(members[i].getUsername() == winnerName) {
+                    winnerExists = true;
+                    break;
+				}
+            }
+            if (!winnerExists) {
+				members[count++] = Member(winnerName);
+            }
+            
+            // Ensure current member is in members list (check again after adding winner)
+            bool currentExists = false;
+            for (int i = 0; i < count; i++) {
+                if(members[i].getUsername() == currentMember->name) {
+                    currentExists = true;
+                    break;
+				}
+            }
+			if (!currentExists) {
+                members[count++] = Member(currentMember->name);
+			}
+
+            // Create a Game object to call addRecord
+            Game game(gameName, 0, 0, 0, 0, 0, false, -1, -1);
             Record recordInfo(gameName, winnerName, members, count);
             game.addRecord(recordInfo);
         }
@@ -500,6 +736,12 @@ extern Member members[1000];
 extern void loadMembers(Member members[], int& size);
 int memberSize = 0;
 
+/*
+ * Displays all games without duplicates
+ * Loads games from array and shows unique game names
+ * Input: None
+ * Return: None
+ */
 void displayGames() {
     loadGames(games, gameSize);
 
@@ -510,6 +752,12 @@ void displayGames() {
     }
 }
 
+/*
+ * Displays and handles the administrator menu interface
+ * Provides options to add/remove games, add members, and view summaries
+ * Input: None
+ * Return: None
+ */
 void adminMenu() {
     Admin admin1 = Admin();
     int choice = -1;
@@ -577,7 +825,7 @@ void adminMenu() {
                 cout << "Year of release: ";
                 cin >> year;
             }
-            Game newGame(name, minPlayers, maxPlayers, minTime, maxTime, year, false, -1);
+            Game newGame(name, minPlayers, maxPlayers, minTime, maxTime, year, false, -1 ,-1);
             admin1.addGame(newGame);
         }
         else if (choice == 2) {
@@ -605,6 +853,12 @@ void adminMenu() {
 
 
 
+/*
+ * Main entry point of the application
+ * Loads data and presents main menu for administrator or member login
+ * Input: None
+ * Return: int - 0 on successful exit
+ */
 int main() {
     loadGamesLL();
     loadMembersLL();   
